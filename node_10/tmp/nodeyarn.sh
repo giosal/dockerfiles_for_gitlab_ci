@@ -2,11 +2,9 @@
 
 set -euo pipefail
 
-npm i -g --force npm@${NPM_VERSION}
+mkdir /home/root
 
 touch ~/.bashrc
-
-curl -o- -L https://yarnpkg.com/install.sh | bash
 
 rm -rf /usr/share/man /var/cache/apk/* \
   /root/.npm /root/.node-gyp /root/.gnupg /usr/lib/node_modules/npm/man \
