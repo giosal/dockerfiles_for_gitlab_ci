@@ -36,13 +36,13 @@ apk --update --no-cache add \
   sqlite-dev \
   zlib-dev
 
-apk --update --no-cache add libzip-dev libsodium-dev
+apk --update --no-cache add libzip-dev libsodium-dev mariadb-connector-c-dev
 
 pecl install oauth
 docker-php-ext-enable oauth
 
 if [[ $PHP_VERSION == "8.5" ]]; then
-  docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl mysqli opcache pdo_mysql soap xsl zip gmp && \
+  docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl mysqli opcache pdo pdo_mysql pdo_sqlite soap xsl zip gmp && \
   docker-php-source delete
 else
   docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl mysqli opcache pdo_mysql soap xsl zip gmp && \
