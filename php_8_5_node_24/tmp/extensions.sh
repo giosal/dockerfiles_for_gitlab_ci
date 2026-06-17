@@ -36,13 +36,27 @@ apk --update --no-cache add \
   sqlite-dev \
   zlib-dev
 
-apk --update --no-cache add libzip-dev libsodium-dev
+apk --update --no-cache add libzip-dev libsodium-dev mariadb-dev
 
 pecl install oauth
 docker-php-ext-enable oauth
 
 if [[ $PHP_VERSION == "8.5" ]]; then
-  docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl mysqli opcache pdo_mysql soap xsl zip gmp && \
+  docker-php-source extract
+  if [ -d /usr/src/php/ext/pdo_mysql ]; then
+    cd /usr/src/php/ext/pdo_mysql && \
+      phpize && \
+      ./configure --with-pdo-mysql=mysqlnd --with-php-config=/usr/local/bin/php-config && \
+      make -j"$(nproc)" && \
+      make install && \
+      docker-php-ext-enable pdo_mysql && \
+      cd /tmp
+  else
+    echo "ERROR: /usr/src/php/ext/pdo_mysql not found!"
+    ls -la /usr/src/php/ext/ | head -40
+    exit 1
+  fi
+  docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl mysqli opcache pdo_sqlite soap xsl zip gmp && \
   docker-php-source delete
 else
   docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl mysqli opcache pdo_mysql soap xsl zip gmp && \
