@@ -56,8 +56,16 @@ if [[ $PHP_VERSION == "8.5" ]]; then
     ls -la /usr/src/php/ext/ | head -40
     exit 1
   fi
-  docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl mysqli opcache pdo_sqlite soap xsl zip gmp && \
+  docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl mysqli opcache pdo_sqlite soap xsl gmp && \
   docker-php-source delete
+  if php -m 2>/dev/null | grep -qi zip; then
+    echo "zip extension is already installed"
+  else
+    docker-php-source extract \
+    && pecl install zip \
+    && docker-php-ext-enable zip \
+    && docker-php-source delete
+  fi
 else
   docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl mysqli opcache pdo_mysql soap xsl zip gmp && \
   docker-php-source delete
