@@ -18,7 +18,6 @@ ENV IMAGE_USER=root
 ENV HOME=/home/$IMAGE_USER
 ENV COMPOSER_HOME=$HOME/.composer
 ENV PATH=$HOME/.yarn/bin:$PATH
-ENV GOSS_VERSION="0.4.4"
 ENV NODE_VERSION=26
 ENV NPM_VERSION=latest
 ENV YARN_VERSION=4.12.0
@@ -42,7 +41,6 @@ RUN chmod +x /tmp/*.sh \
   && bash ./nodeyarn.sh \
   && rm -rf ~/.composer/cache/* \
   && chown -R $IMAGE_USER:$IMAGE_USER /var/www $HOME \
-  && curl -fsSL https://goss.rocks/install | GOSS_VER=v${GOSS_VERSION} sh \
   && bash ./cleanup.sh
 
 WORKDIR /var/www/html
