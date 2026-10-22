@@ -38,42 +38,20 @@ apk --update --no-cache add \
   sqlite-dev \
   zlib-dev
 
-apk --update --no-cache add libzip-dev libsodium-dev mariadb-dev
+apk --update --no-cache add libzip-dev libsodium-dev
 
 pecl install oauth
 docker-php-ext-enable oauth
 
-if [[ $PHP_VERSION == "8.5" ]]; then
-  docker-php-source extract
-  if [ -d /usr/src/php/ext/pdo_mysql ]; then
-    cd /usr/src/php/ext/pdo_mysql && \
-      phpize && \
-      ./configure --with-pdo-mysql=mysqlnd --with-php-config=/usr/local/bin/php-config && \
-      make -j"$(nproc)" && \
-      make install && \
-      docker-php-ext-enable pdo_mysql && \
-      cd /tmp
-  else
-    echo "ERROR: /usr/src/php/ext/pdo_mysql not found!"
-    ls -la /usr/src/php/ext/ | head -40
-    exit 1
-  fi
-  docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl mysqli pdo_pgsql pgsql pdo_sqlite soap xsl gmp && \
+if [[ $PHP_VERSION == "8.4" ]]; then
+  docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl opcache pdo_pgsql pgsql soap xsl zip gmp && \
   docker-php-source delete
-  if php -m 2>/dev/null | grep -qi zip; then
-    echo "zip extension is already installed"
-  else
-    docker-php-source extract \
-    && pecl install zip \
-    && docker-php-ext-enable zip \
-    && docker-php-source delete
-  fi
 else
-  docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl mysqli opcache pdo_mysql pdo_pgsql pgsql soap xsl zip gmp && \
+  docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl opcache pdo_pgsql soap pgsql xsl zip gmp && \
   docker-php-source delete
 fi
 
-if [[ $PHP_VERSION == "8.5" || $PHP_VERSION == "7.4" ]]; then
+if [[ $PHP_VERSION == "8.4" || $PHP_VERSION == "7.4" ]]; then
   docker-php-ext-configure gd --with-freetype --with-jpeg
 else
   docker-php-ext-configure gd \
@@ -86,7 +64,10 @@ fi
 docker-php-ext-install -j "$(nproc)" gd
 
 pecl install xdebug \
-  && docker-php-ext-enable xdebug
+  && docker-php-ext-enable xdebug \
+  && echo "xdebug.mode=develop,debug,coverage" > /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+  && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+  && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 docker-php-source extract \
     && apk add --no-cache --virtual .phpize-deps-configure $PHPIZE_DEPS \
@@ -95,7 +76,7 @@ docker-php-source extract \
     && apk del .phpize-deps-configure \
     && docker-php-source delete
 
-if [[ $PHP_VERSION == "8.5" ]]; then
+if [[ $PHP_VERSION == "8.4" ]]; then
   #AMQP
   docker-php-source extract \
     && mkdir /usr/src/php/ext/amqp \
@@ -166,7 +147,7 @@ git clone "https://github.com/php-memcached-dev/php-memcached.git" \
 
 echo "memory_limit=1G" > /usr/local/etc/php/conf.d/zz-conf.ini
 
-if [[ $PHP_VERSION == "8.5" ]]; then
+if [[ $PHP_VERSION == "8.4" ]]; then
   # https://xdebug.org/docs/upgrade_guide#changed-xdebug.coverage_enable
   echo 'xdebug.mode=coverage' > /usr/local/etc/php/conf.d/20-xdebug.ini
   cat /usr/local/etc/php/conf.d/20-xdebug.ini | grep 'xdebug.mode'

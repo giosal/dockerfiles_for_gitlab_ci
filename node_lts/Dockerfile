@@ -17,7 +17,7 @@ LABEL maintainer="George Salukvadze <gsalukvadze@iotlab.com>" \
 ENV IMAGE_USER=root
 ENV HOME=/home/$IMAGE_USER
 ENV PATH=$HOME/.yarn/bin:$PATH
-ENV NODE_VERSION=10.24.1
+ENV NODE_VERSION=lts
 ENV NPM_VERSION=latest
 ENV YARN_VERSION=1.22.22
 

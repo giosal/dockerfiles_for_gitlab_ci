@@ -4,8 +4,7 @@ ARG BUILD_DATE
 ARG VCS_REF
 
 LABEL maintainer="George Salukvadze <gsalukvadze@iotlab.com>" \
-  PHP="8.3" \
-  NODE="20" \
+  NODE="22" \
   org.label-schema.name="giosal/dockerfiles_for_gitlab_ci" \
   org.label-schema.description=":coffee: Docker images for building and testing Node applications with Gitlab CI (or any other CI plataform!)" \
   org.label-schema.build-date=$BUILD_DATE \

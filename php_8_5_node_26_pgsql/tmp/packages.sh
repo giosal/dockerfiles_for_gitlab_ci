@@ -3,11 +3,6 @@
 set -euo pipefail
 
 apk --update --no-cache add \
-	autoconf \
-    build-base \
-	ca-certificates \
-	curl \
-    file \
 	g++ \
     gcc \
     git \
@@ -19,11 +14,21 @@ apk --update --no-cache add \
     npm \
     openssh-client \
     openssl \
-    openssl-dev \
     patch \
     python3 \
     rsync \
     sudo \
+    zip
+
+# persistent / runtime deps
+apk add --update --no-cache --virtual .persistent-deps \
+	ca-certificates \
 	tar \
 	xz \
-    zip
+	curl
+
+apk add --update --no-cache \
+	autoconf \
+    build-base \
+    file \
+    openssl-dev
