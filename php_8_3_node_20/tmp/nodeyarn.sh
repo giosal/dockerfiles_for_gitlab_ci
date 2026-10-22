@@ -2,11 +2,17 @@
 
 set -euo pipefail
 
-npm i -g --force npm@${NPM_VERSION}
+npm i -g --force npm@"${NPM_VERSION:-latest}"
+npm i -g --force corepack
 
 touch ~/.bashrc
 
-curl -o- -L https://yarnpkg.com/install.sh | bash
+corepack enable
+if [[ "${YARN_VERSION:-latest}" == "latest" || "${YARN_VERSION:-latest}" == "stable" ]]; then
+  corepack prepare yarn@stable --activate
+else
+  corepack prepare "yarn@${YARN_VERSION}" --activate
+fi
 
 rm -rf /usr/share/man /var/cache/apk/* \
   /root/.npm /root/.node-gyp /root/.gnupg /usr/lib/node_modules/npm/man \

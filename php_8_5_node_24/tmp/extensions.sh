@@ -36,51 +36,20 @@ apk --update --no-cache add \
   sqlite-dev \
   zlib-dev
 
-apk --update --no-cache add libzip-dev libsodium-dev mariadb-dev
+apk --update --no-cache add libzip-dev libsodium-dev
 
 pecl install oauth
 docker-php-ext-enable oauth
 
-if [[ $PHP_VERSION == "8.5" ]]; then
-  docker-php-source extract
-  if [ -d /usr/src/php/ext/pdo_mysql ]; then
-    cd /usr/src/php/ext/pdo_mysql && \
-      phpize && \
-      ./configure --with-pdo-mysql=mysqlnd --with-php-config=/usr/local/bin/php-config && \
-      make -j"$(nproc)" && \
-      make install && \
-      docker-php-ext-enable pdo_mysql && \
-      cd /tmp
-  else
-    echo "ERROR: /usr/src/php/ext/pdo_mysql not found!"
-    ls -la /usr/src/php/ext/ | head -40
-    exit 1
-  fi
-  docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl mysqli pdo_sqlite soap xsl gmp && \
+if [[ $PHP_VERSION == 8.5* ]] || [ "$(php -r 'echo PHP_VERSION_ID;')" -ge 80500 ]; then
+  docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl mysqli pdo_mysql soap xsl zip gmp && \
   docker-php-source delete
-  if php -m 2>/dev/null | grep -qi zip; then
-    echo "zip extension is already installed"
-  else
-    docker-php-source extract \
-    && pecl install zip \
-    && docker-php-ext-enable zip \
-    && docker-php-source delete
-  fi
 else
   docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl mysqli opcache pdo_mysql soap xsl zip gmp && \
   docker-php-source delete
 fi
 
-if [[ $PHP_VERSION == "8.5" || $PHP_VERSION == "7.4" ]]; then
-  docker-php-ext-configure gd --with-freetype --with-jpeg
-else
-  docker-php-ext-configure gd \
-          --with-gd \
-          --with-freetype-dir=/usr/include \
-          --with-jpeg-dir=/usr/include \
-          --with-png-dir=/usr/include
-fi
-
+docker-php-ext-configure gd --with-freetype --with-jpeg
 docker-php-ext-install -j "$(nproc)" gd
 
 pecl install xdebug \
@@ -96,42 +65,37 @@ docker-php-source extract \
     && apk del .phpize-deps-configure \
     && docker-php-source delete
 
-if [[ $PHP_VERSION == "8.5" ]]; then
-  #AMQP
-  docker-php-source extract \
-    && mkdir /usr/src/php/ext/amqp \
-    && curl -L https://github.com/php-amqp/php-amqp/archive/master.tar.gz | tar -xzC /usr/src/php/ext/amqp --strip-components=1 \
-    && docker-php-ext-install amqp \
-    && docker-php-source delete
+#AMQP
+docker-php-source extract \
+  && mkdir /usr/src/php/ext/amqp \
+  && curl -L https://github.com/php-amqp/php-amqp/archive/master.tar.gz | tar -xzC /usr/src/php/ext/amqp --strip-components=1 \
+  && docker-php-ext-install amqp \
+  && docker-php-source delete
 
-  #Imagick
-  mkdir /usr/local/src \
-    && cd /usr/local/src \
-    && git clone https://github.com/Imagick/imagick \
-    && cd imagick \
-    && phpize \
-    && ./configure \
-    && make \
-    && make install \
-    && cd .. \
-    && rm -rf imagick \
-    && docker-php-ext-enable imagick
+#Imagick
+mkdir /usr/local/src \
+  && cd /usr/local/src \
+  && git clone https://github.com/Imagick/imagick \
+  && cd imagick \
+  && phpize \
+  && ./configure \
+  && make \
+  && make install \
+  && cd .. \
+  && rm -rf imagick \
+  && docker-php-ext-enable imagick
 
-  #XMLRPC
-  mkdir /usr/local/src/xmlrpc \
-    && cd /usr/local/src/xmlrpc \
-    && curl -L https://pecl.php.net/get/xmlrpc-1.0.0RC1.tgz | tar -xzC /usr/local/src/xmlrpc --strip-components=1 \
-    && phpize \
-    && ./configure \
-    && make \
-    && make install \
-    && cd .. \
-    && rm -rf xmlrpc \
-    && docker-php-ext-enable xmlrpc
-
-else
-	echo "PHP version < 8.3"
-fi
+#XMLRPC
+mkdir /usr/local/src/xmlrpc \
+  && cd /usr/local/src/xmlrpc \
+  && curl -L https://pecl.php.net/get/xmlrpc-1.0.0RC1.tgz | tar -xzC /usr/local/src/xmlrpc --strip-components=1 \
+  && phpize \
+  && ./configure \
+  && make \
+  && make install \
+  && cd .. \
+  && rm -rf xmlrpc \
+  && docker-php-ext-enable xmlrpc
 
 git clone "https://github.com/php-memcached-dev/php-memcached.git" \
     && cd php-memcached \

@@ -1,10 +1,17 @@
-FROM node:24-alpine
+ARG NODE_VERSION=24
+ARG NPM_VERSION=latest
+ARG YARN_VERSION=1.22.22
 
+FROM node:${NODE_VERSION}-alpine
+
+ARG NODE_VERSION
+ARG NPM_VERSION
+ARG YARN_VERSION
 ARG BUILD_DATE
 ARG VCS_REF
 
 LABEL maintainer="George Salukvadze <gsalukvadze@iotlab.com>" \
-  NODE="24" \
+  NODE="${NODE_VERSION}" \
   org.label-schema.name="giosal/dockerfiles_for_gitlab_ci" \
   org.label-schema.description=":coffee: Docker images for building and testing Node applications with Gitlab CI (or any other CI plataform!)" \
   org.label-schema.build-date=$BUILD_DATE \
@@ -16,10 +23,9 @@ LABEL maintainer="George Salukvadze <gsalukvadze@iotlab.com>" \
 ENV IMAGE_USER=root
 ENV HOME=/home/$IMAGE_USER
 ENV PATH=$HOME/.yarn/bin:$PATH
-ENV GOSS_VERSION="0.4.4"
-ENV NODE_VERSION=24.15.0
-ENV NPM_VERSION=latest
-ENV YARN_VERSION=1.22.22
+ENV NODE_VERSION=${NODE_VERSION}
+ENV NPM_VERSION=${NPM_VERSION}
+ENV YARN_VERSION=${YARN_VERSION}
 
 USER $IMAGE_USER
 
@@ -38,7 +44,6 @@ RUN chmod +x /tmp/*.sh \
   && apk add yarn \
   && mkdir /var/www \
   && chown -R $IMAGE_USER:$IMAGE_USER /var/www $HOME \
-  && curl -fsSL https://goss.rocks/install | GOSS_VER=v${GOSS_VERSION} sh \
   && bash ./cleanup.sh \
   && mkdir /var/www/html
 

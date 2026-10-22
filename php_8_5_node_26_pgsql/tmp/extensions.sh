@@ -43,24 +43,15 @@ apk --update --no-cache add libzip-dev libsodium-dev
 pecl install oauth
 docker-php-ext-enable oauth
 
-if [[ $PHP_VERSION == "8.4" ]]; then
+if [[ $PHP_VERSION == 8.5* ]] || [ "$(php -r 'echo PHP_VERSION_ID;')" -ge 80500 ]; then
+  docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl pdo_pgsql pgsql soap xsl zip gmp && \
+  docker-php-source delete
+else
   docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl opcache pdo_pgsql pgsql soap xsl zip gmp && \
   docker-php-source delete
-else
-  docker-php-ext-install -j "$(nproc)" exif pcntl bcmath bz2 calendar intl opcache pdo_pgsql soap pgsql xsl zip gmp && \
-  docker-php-source delete
 fi
 
-if [[ $PHP_VERSION == "8.4" || $PHP_VERSION == "7.4" ]]; then
-  docker-php-ext-configure gd --with-freetype --with-jpeg
-else
-  docker-php-ext-configure gd \
-          --with-gd \
-          --with-freetype-dir=/usr/include \
-          --with-jpeg-dir=/usr/include \
-          --with-png-dir=/usr/include
-fi
-
+docker-php-ext-configure gd --with-freetype --with-jpeg
 docker-php-ext-install -j "$(nproc)" gd
 
 pecl install xdebug \
@@ -76,42 +67,37 @@ docker-php-source extract \
     && apk del .phpize-deps-configure \
     && docker-php-source delete
 
-if [[ $PHP_VERSION == "8.4" ]]; then
-  #AMQP
-  docker-php-source extract \
-    && mkdir /usr/src/php/ext/amqp \
-    && curl -L https://github.com/php-amqp/php-amqp/archive/master.tar.gz | tar -xzC /usr/src/php/ext/amqp --strip-components=1 \
-    && docker-php-ext-install amqp \
-    && docker-php-source delete
+#AMQP
+docker-php-source extract \
+  && mkdir /usr/src/php/ext/amqp \
+  && curl -L https://github.com/php-amqp/php-amqp/archive/master.tar.gz | tar -xzC /usr/src/php/ext/amqp --strip-components=1 \
+  && docker-php-ext-install amqp \
+  && docker-php-source delete
 
-  #Imagick
-  mkdir /usr/local/src \
-    && cd /usr/local/src \
-    && git clone https://github.com/Imagick/imagick \
-    && cd imagick \
-    && phpize \
-    && ./configure \
-    && make \
-    && make install \
-    && cd .. \
-    && rm -rf imagick \
-    && docker-php-ext-enable imagick
+#Imagick
+mkdir /usr/local/src \
+  && cd /usr/local/src \
+  && git clone https://github.com/Imagick/imagick \
+  && cd imagick \
+  && phpize \
+  && ./configure \
+  && make \
+  && make install \
+  && cd .. \
+  && rm -rf imagick \
+  && docker-php-ext-enable imagick
 
-  #XMLRPC
-  mkdir /usr/local/src/xmlrpc \
-    && cd /usr/local/src/xmlrpc \
-    && curl -L https://pecl.php.net/get/xmlrpc-1.0.0RC1.tgz | tar -xzC /usr/local/src/xmlrpc --strip-components=1 \
-    && phpize \
-    && ./configure \
-    && make \
-    && make install \
-    && cd .. \
-    && rm -rf xmlrpc \
-    && docker-php-ext-enable xmlrpc
-
-else
-	echo "PHP version < 8.3"
-fi
+#XMLRPC
+mkdir /usr/local/src/xmlrpc \
+  && cd /usr/local/src/xmlrpc \
+  && curl -L https://pecl.php.net/get/xmlrpc-1.0.0RC1.tgz | tar -xzC /usr/local/src/xmlrpc --strip-components=1 \
+  && phpize \
+  && ./configure \
+  && make \
+  && make install \
+  && cd .. \
+  && rm -rf xmlrpc \
+  && docker-php-ext-enable xmlrpc
 
 git clone "https://github.com/php-memcached-dev/php-memcached.git" \
     && cd php-memcached \
@@ -147,10 +133,3 @@ git clone "https://github.com/php-memcached-dev/php-memcached.git" \
 
 echo "memory_limit=1G" > /usr/local/etc/php/conf.d/zz-conf.ini
 
-if [[ $PHP_VERSION == "8.4" ]]; then
-  # https://xdebug.org/docs/upgrade_guide#changed-xdebug.coverage_enable
-  echo 'xdebug.mode=coverage' > /usr/local/etc/php/conf.d/20-xdebug.ini
-  cat /usr/local/etc/php/conf.d/20-xdebug.ini | grep 'xdebug.mode'
-else
-  echo 'xdebug.coverage_enable=1' > /usr/local/etc/php/conf.d/20-xdebug.ini
-fi
