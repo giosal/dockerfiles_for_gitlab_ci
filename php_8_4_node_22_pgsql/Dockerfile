@@ -40,7 +40,7 @@ WORKDIR /tmp
 COPY ./tmp/*.sh /tmp/
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY --from=node /usr/local/bin/node /usr/local/bin/
-COPY --from=node /usr/lib/lib* /usr/lib/
+COPY --from=node /usr/lib/libstdc++.so* /usr/lib/libgcc_s.so* /usr/lib/
 
 # COPY INSTALL SCRIPT
 RUN chmod +x /tmp/*.sh \
