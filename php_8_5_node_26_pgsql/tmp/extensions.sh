@@ -56,26 +56,24 @@ docker-php-ext-install -j "$(nproc)" gd
 
 pecl install xdebug \
   && docker-php-ext-enable xdebug \
-  && echo "xdebug.mode=develop,debug,coverage" > /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-  && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-  && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+  && { \
+    echo "xdebug.mode=develop,debug,coverage"; \
+    echo "xdebug.client_host=host.docker.internal"; \
+    echo "xdebug.start_with_request=trigger"; \
+  } >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
-docker-php-source extract \
-    && apk add --no-cache --virtual .phpize-deps-configure $PHPIZE_DEPS \
-    && pecl install apcu \
-    && docker-php-ext-enable apcu \
-    && apk del .phpize-deps-configure \
-    && docker-php-source delete
+pecl install apcu \
+  && docker-php-ext-enable apcu
 
 #AMQP
 docker-php-source extract \
-  && mkdir /usr/src/php/ext/amqp \
+  && mkdir -p /usr/src/php/ext/amqp \
   && curl -L https://github.com/php-amqp/php-amqp/archive/master.tar.gz | tar -xzC /usr/src/php/ext/amqp --strip-components=1 \
   && docker-php-ext-install amqp \
   && docker-php-source delete
 
 #Imagick
-mkdir /usr/local/src \
+mkdir -p /usr/local/src \
   && cd /usr/local/src \
   && git clone https://github.com/Imagick/imagick \
   && cd imagick \
@@ -86,18 +84,6 @@ mkdir /usr/local/src \
   && cd .. \
   && rm -rf imagick \
   && docker-php-ext-enable imagick
-
-#XMLRPC
-mkdir /usr/local/src/xmlrpc \
-  && cd /usr/local/src/xmlrpc \
-  && curl -L https://pecl.php.net/get/xmlrpc-1.0.0RC1.tgz | tar -xzC /usr/local/src/xmlrpc --strip-components=1 \
-  && phpize \
-  && ./configure \
-  && make \
-  && make install \
-  && cd .. \
-  && rm -rf xmlrpc \
-  && docker-php-ext-enable xmlrpc
 
 git clone "https://github.com/php-memcached-dev/php-memcached.git" \
     && cd php-memcached \
