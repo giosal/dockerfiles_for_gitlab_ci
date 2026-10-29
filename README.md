@@ -1,9 +1,13 @@
 # Dockerfiles for Gitlab CI
-Repository containing Docker files to create Docker image for GitLab CI
+Repository containing Docker files to create Docker images for GitLab CI
 
-Currently, there are two files
-- PHP 8.3 Alpine with Node 20
+Available images:
+- Python 3.13 Slim (Debian, with gcc/build-essential, git, openssh, curl, rsync, sshpass)
+- Python 3.13 Alpine
+- PHP 8.5 Alpine with Node 26
+- PHP 8.5 Alpine with Node 26 + PostgreSQL
+- PHP 8.5 Alpine with Node 24
 - PHP 8.4 Alpine with Node 22
-- Node 10
-- Node 18
-- Node 20 (latest lts)
+- PHP 8.4 Alpine with Node 22 + PostgreSQL
+- PHP 8.3 Alpine with Node 20
+- Node 18, 20, 22, 24, 26, LTS
