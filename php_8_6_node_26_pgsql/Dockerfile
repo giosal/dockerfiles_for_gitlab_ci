@@ -39,6 +39,7 @@ WORKDIR /tmp
 
 COPY ./tmp/*.sh /tmp/
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=ghcr.io/php/pie:bin /pie /usr/local/bin/pie
 COPY --from=node /usr/local/bin/node /usr/local/bin/
 COPY --from=node /usr/lib/libstdc++.so* /usr/lib/libgcc_s.so* /usr/lib/
 
